@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ALTER COLUMN "rpc" SET DATA TYPE json;
