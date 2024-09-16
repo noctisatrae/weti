@@ -2,7 +2,7 @@ import { defineConfig, type Config } from 'drizzle-kit';
 
 const DB_HOST = "localhost:5432"
 const DB_USER = "postgres"
-const DB_PASSWORD = "helloworld"
+const DB_PASSWORD = "jesuisunecarotte"
 const DB_NAME = "postgres"
 
 // const checks = ["HOST", "USER", "PASSWORD", "NAME"];
