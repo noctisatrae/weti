@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: weti_api
+      dockerfile: Dockerfile  # Path to the Dockerfile
+    container_name: weti_api  # Optional: Name the container for easier management
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    restart: unless-stopped  # Restart policy for the container
+    env_file:
+      - .env
+
+networks:
+  default:
+    driver: bridge
