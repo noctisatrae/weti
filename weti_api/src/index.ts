@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator'
 
 import db from "../db";
+import startMigration from '../db/migrate';
 import { watchRequest, watchRequestSchema, ethereumRPCSchema } from "../db/schema"
 
 const TOKEN: string = process.env.TOKEN!;
@@ -14,6 +15,9 @@ if (TOKEN === undefined) {
   console.error("Token not set! Quitting...");
   process.exit();
 }
+
+console.info("Starting migration!");
+await startMigration;
 
 const app = new Hono()
 app.use(logger())
