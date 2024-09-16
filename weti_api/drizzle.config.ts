@@ -10,6 +10,23 @@ for (let i = 0; i in checks; i++) {
   }
 }
 
-if (numErr > 0)
+if (numErr > 0) {
   console.error("Quitting...")
   process.exit();
+}
+
+// @ts-ignore
+const config: Config = {
+  schema: "./src/schema.ts",
+  out: "./drizzle",
+  dialect: "postgresql",
+  dbCredentials: {
+    // @ts-ignore
+    host: process.env["DB_HOST"],
+    user: process.env["DB_USER"],
+    password: process.env["DB_PASSWORD"],
+    database: process.env["DB_NAME"]
+  }
+}
+
+export default defineConfig(config);
