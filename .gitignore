@@ -173,5 +173,7 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+
 bun.lockb
 .env.development
+drizzle
