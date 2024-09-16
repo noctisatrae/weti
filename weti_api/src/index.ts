@@ -16,7 +16,7 @@ if (TOKEN === undefined) {
   process.exit();
 }
 
-console.info("Starting migration!");
+console.info("[INFO] Starting migration!");
 await startMigration;
 
 const app = new Hono()
