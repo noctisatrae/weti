@@ -1,19 +1,24 @@
 import { defineConfig, type Config } from 'drizzle-kit';
 
-const checks = ["HOST", "USER", "PASSWORD", "NAME"];
+const DB_HOST = "localhost:5432"
+const DB_USER = "postgres"
+const DB_PASSWORD = "helloworld"
+const DB_NAME = "postgres"
 
-let numErr = 0;
-for (let i = 0; i in checks; i++) {
-  if (process.env[`DB_${checks[i]}`] === undefined || process.env[`DB_${checks[i]}`] == "") {
-    console.error(`DB_${checks[i]} not set!`);
-    numErr++;
-  }
-}
+// const checks = ["HOST", "USER", "PASSWORD", "NAME"];
 
-if (numErr > 0) {
-  console.error("Quitting...")
-  process.exit();
-}
+// let numErr = 0;
+// for (let i = 0; i in checks; i++) {
+//   if (process.env[`DB_${checks[i]}`] === undefined || process.env[`DB_${checks[i]}`] == "") {
+//     console.error(`DB_${checks[i]} not set!`);
+//     numErr++;
+//   }
+// }
+
+// if (numErr > 0) {
+//   console.error("Quitting...")
+//   process.exit();
+// }
 
 // @ts-ignore
 const config: Config = {
@@ -22,10 +27,10 @@ const config: Config = {
   dialect: "postgresql",
   dbCredentials: {
     // @ts-ignore
-    host: process.env["DB_HOST"],
-    user: process.env["DB_USER"],
-    password: process.env["DB_PASSWORD"],
-    database: process.env["DB_NAME"]
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME
   }
 }
 
