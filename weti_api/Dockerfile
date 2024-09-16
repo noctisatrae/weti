@@ -25,6 +25,8 @@ COPY . .
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/app/src/index.ts src/index.ts
+COPY --from=prerelease /usr/app/db db
+COPY --from=prerelease /usr/app/drizzle drizzle
 COPY --from=prerelease /usr/app/package.json .
 
 # run the app
