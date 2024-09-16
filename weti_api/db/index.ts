@@ -1,6 +1,8 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres'
 
+import { watchRequest } from './schema';
+
 const DB_URL: string = process.env.DB_URL!;
 
 if (DB_URL === undefined) {
@@ -9,7 +11,12 @@ if (DB_URL === undefined) {
 }
 
 const sql = postgres(DB_URL) // will use psql environment variables
-const db = drizzle(sql);
+
+const db = drizzle(sql, {
+  schema: {
+    watchRequest
+  }
+});
 
 export default db;
 export {
