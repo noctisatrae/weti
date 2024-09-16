@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: weti_api
+      context: weti-api
       dockerfile: Dockerfile  # Path to the Dockerfile
     container_name: weti_api  # Optional: Name the container for easier management
     ports:
