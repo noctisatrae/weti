@@ -5,7 +5,7 @@ import { bearerAuth } from 'hono/bearer-auth'
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator'
 
-import { watchRequestSchema } from "../db/schemes"
+import { watchRequestSchema } from "../db/schema"
 // import db from "../db";
 
 const TOKEN: string = process.env.TOKEN!;

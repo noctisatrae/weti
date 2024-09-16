@@ -22,7 +22,7 @@ const DB_NAME = "postgres"
 
 // @ts-ignore
 const config: Config = {
-  schema: "./src/schema.ts",
+  schema: "./db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
