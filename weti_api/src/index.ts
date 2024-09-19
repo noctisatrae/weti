@@ -6,7 +6,7 @@ import { zValidator } from '@hono/zod-validator'
 
 import db from "../db";
 import startMigration from '../db/migrate';
-import { watchRequest, watchRequestSchema, ethereumRPCSchema } from "../db/schema"
+import { watchRequest, watchRequestSchema } from "../db/schema"
 
 const TOKEN: string = process.env.TOKEN!;
 const PORT: number = (process.env.PORT === undefined ? 3000 : +process.env.PORT);
@@ -26,20 +26,20 @@ app.use(logger())
 
 app.use('/*', bearerAuth({ token: TOKEN }))
 
-db.insert(watchRequest).values({
-  frequency: 500,
-  rpc: {
-    jsonrpc: "2.0",
-    params: ["0x0000"],
-    method: "eth_getbalance",
-    id: 1
-  }
-})
-
 app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
-  const body = (await c.req.json()) as z.infer<typeof watchRequestSchema>
-  return c.json(body);
-})
+  try {
+    const body = (await c.req.json()) as z.infer<typeof watchRequestSchema>;
+
+    const result = await db.insert(watchRequest).values(body).returning().execute();
+
+    console.log('Insert result:', result); // Log result to verify insertion
+
+    return c.json(body);
+  } catch (error) {
+    console.error('Error inserting into DB:', error);
+    return c.json({ error: 'An error occurred' }, { status: 500 });
+  }
+});
 
 console.info(`[INFO] Started at http://localhost:${PORT}`);
 export default { 
