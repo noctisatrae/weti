@@ -11,6 +11,7 @@ if (DB_URL === undefined) {
 }
 
 const sql = postgres(DB_URL) // will use psql environment variables
+const sqlMigration = postgres(DB_URL, { max: 1 })
 
 const db = drizzle(sql, {
   schema: {
@@ -20,5 +21,6 @@ const db = drizzle(sql, {
 
 export default db;
 export {
-  sql
+  sql,
+  sqlMigration
 };
