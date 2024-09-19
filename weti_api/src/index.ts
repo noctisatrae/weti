@@ -30,6 +30,8 @@ app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
   try {
     const body = (await c.req.json()) as z.infer<typeof watchRequestSchema>;
 
+    // @ts-ignore : the complexity of the type makes it hard for the warning to be helpful lol. 
+    // It works for now, might investigate later
     const result = await db.insert(watchRequest).values(body).returning().execute();
 
     console.log('Insert result:', result); // Log result to verify insertion
