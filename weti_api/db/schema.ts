@@ -1,4 +1,4 @@
-import { pgTable, json, integer } from "drizzle-orm/pg-core";
+import { pgTable, jsonb, integer } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ const ethereumRPCSchema = z.object({
 type RPC = z.infer<typeof ethereumRPCSchema>;
 const watchRequest = pgTable('jobs', {
   frequency: integer("frequency"),
-  rpc: json('rpc').$type<RPC>()
+  rpc: jsonb('rpc').$type<RPC>()
 });
 
 const watchRequestSchema = createSelectSchema(watchRequest);
