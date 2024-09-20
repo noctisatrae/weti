@@ -47,12 +47,12 @@ app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
 app.post('/jobs', zValidator("json", getJobsSchema), async (c) => {
   try {
     const body = (await c.req.json()) as z.infer<typeof getJobsSchema>;
-    console.debug(body.limit)
     const validJobs = await db
       .select()
       .from(watchRequest)
       .where(gt(watchRequest.expiration, new Date().toISOString()))
-      .orderBy(asc(watchRequest.expiration));
+      .orderBy(asc(watchRequest.expiration))
+      .limit(body.limit);
 
     return c.json(validJobs);
   } catch (error) {
