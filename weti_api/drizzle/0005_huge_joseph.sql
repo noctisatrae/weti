@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "id" bigserial NOT NULL;
