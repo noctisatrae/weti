@@ -12,7 +12,7 @@ const ethereumRPCSchema = z.object({
 type RPC = z.infer<typeof ethereumRPCSchema>;
 const watchRequest = pgTable('jobs', {
   frequency: integer("frequency"),
-  expiration: timestamp('expiration', { mode: "date" }),
+  expiration: timestamp('expiration', { mode: "string" }),
   rpc: jsonb('rpc').$type<RPC>()
 });
 
