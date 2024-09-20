@@ -43,6 +43,20 @@
       "when": 1726826173911,
       "tag": "0005_huge_joseph",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1726863757684,
+      "tag": "0006_shiny_true_believers",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1726863852170,
+      "tag": "0007_amused_santa_claus",
+      "breakpoints": true
     }
   ]
 }
