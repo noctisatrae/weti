@@ -10,24 +10,17 @@ import (
 	"github.com/panjf2000/ants/v2"
 )
 
-type GetJobRequest struct {
-	Limit int `json:"limit"`
-}
-
 type Provider string
+type WorkerFunc func()
 
-// Enum values for Provider
 const (
 	ProviderMoralis Provider = "moralis"
 	ProviderInfura  Provider = "infura"
 	ProviderAlchemy Provider = "alchemy"
 )
 
-func (p Provider) Fetch(rpc Rpc) {
-	switch p {
-	case "moralis":
-		
-	}
+type GetJobRequest struct {
+	Limit int `json:"limit"`
 }
 
 type Job struct {
@@ -36,19 +29,6 @@ type Job struct {
 	Expiration string   `json:"expiration"`
 	Provider   Provider `json:"provider"`
 	Rpc 			 Rpc      `json:"rpc"`
-}
-
-func (j Job) ParseExpirationDate() (*time.Time, error) {
-	parsedDate, err := time.Parse("2006-01-02 15:04:05.000", j.Expiration)
-	if err != nil {
-		return nil, err
-	}
-
-	return &parsedDate, nil
-}
-
-func (j Job) Fetch() {
-	j.Provider.Fetch(j.Rpc)
 }
 
 type JobHandler struct {
@@ -66,14 +46,40 @@ type JobHandler struct {
 	Logger log.Logger
 }
 
+func (p Provider) Fetch(rpc Rpc) {
+	switch p {
+	case "moralis":
+		// TODO
+	case "infura":
+		// TODO
+	case "alchemy":
+		// TODO
+	}
+}
+
+func (j Job) ParseExpirationDate() (*time.Time, error) {
+	parsedDate, err := time.Parse("2006-01-02 15:04:05.000", j.Expiration)
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsedDate, nil
+}
+
+func (j Job) Fetch() {
+	j.Provider.Fetch(j.Rpc)
+}
+
 func (jh *JobHandler) PopulateJobList() error {
 	err := requests.
 		URL("http://localhost:3000/jobs").
 		ToJSON(&jh.Jobs).
 		Bearer("helloworld").
-		Accept("application/json").BodyJSON(GetJobRequest{
-		Limit: jh.Limit,
-	}).Fetch(jh.Ctx)
+		Accept("application/json").
+		BodyJSON(GetJobRequest{
+			Limit: jh.Limit,
+		}).
+		Fetch(jh.Ctx)
 
 	return err
 }
@@ -84,8 +90,6 @@ func (jh *JobHandler) CreateWorkerPool() error {
 	jh.Pool, err = ants.NewMultiPool(jh.Limit, jh.RTime, ants.LeastTasks)
 	return err
 }
-
-type WorkerFunc func()
 
 func (jh JobHandler) AddToWorkerPool(t WorkerFunc) error {
 	err := jh.Pool.Submit(t)
@@ -107,7 +111,7 @@ func (jh JobHandler) ExecuteAll() {
 		})
 
 		if err != nil {
-			log.Error("Failed to add job to worker pool", "error", err)
+			log.Error("Failed to add job to worker pool! |", "error", err)
 		}
 	}
 
