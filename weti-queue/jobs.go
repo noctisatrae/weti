@@ -46,6 +46,7 @@ type JobHandler struct {
 	Logger log.Logger
 }
 
+// TODO MORALIS
 func (p Provider) Fetch(rpc Rpc) {
 	switch p {
 	case "moralis":
@@ -66,6 +67,7 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 	return &parsedDate, nil
 }
 
+// TODO error handling
 func (j Job) Fetch() {
 	j.Provider.Fetch(j.Rpc)
 }
