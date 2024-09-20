@@ -6,3 +6,5 @@ https://ethereum.org/en/developers/docs/oracles/#publish-subscribe-oracles
 commit where I have a clean project: abe3210
 
 might change bigserial to smallsmerial as we don't need 2^{53} id + we clean them up regularly
+
+https://www.infura.io/blog/post/ethereum-rpcs-methods
