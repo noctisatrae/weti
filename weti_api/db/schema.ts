@@ -1,6 +1,8 @@
-import { pgTable, jsonb, integer, timestamp, bigserial } from "drizzle-orm/pg-core";
+import { pgTable, jsonb, integer, timestamp, bigserial, pgEnum } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const providerEnum = pgEnum('providers', ['moralis', 'infura', 'alchemy']);
 
 const ethereumRPCSchema = z.object({
   jsonrpc: z.literal("2.0"),
@@ -14,6 +16,7 @@ const watchRequest = pgTable('jobs', {
   id: bigserial("id", { mode: "number" }),
   frequency: integer("frequency"),
   expiration: timestamp('expiration', { mode: "string" }),
+  provider: providerEnum('providers'),
   rpc: jsonb('rpc').$type<RPC>()
 });
 
