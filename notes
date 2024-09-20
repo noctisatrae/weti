@@ -8,3 +8,5 @@ commit where I have a clean project: abe3210
 might change bigserial to smallsmerial as we don't need 2^{53} id + we clean them up regularly
 
 https://www.infura.io/blog/post/ethereum-rpcs-methods
+
+https://developers.moralis.com/full-tutorial-how-to-get-wallet-transactions-using-rpc-nodes/ => can also do that on alchemy
