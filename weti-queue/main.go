@@ -110,6 +110,6 @@ func main() {
 	log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
 
 	j.CreateWorkerPool()
-	log.Info("Created worker pool!", "Workers", j.Pool)
+	log.Info("Created worker pool!", "Workers", j.Pool.Cap())
 	j.ExecuteAll()
 }
