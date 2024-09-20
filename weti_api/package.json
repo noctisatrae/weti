@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "bun src/index.ts",
     "generate": "bun drizzle-kit generate",
-    "migrate": "bun drizzle-kit migrate"
+    "migrate": "bun drizzle-kit migrate",
+    "studio": "bun drizzle-kit studio"
   },
   "devDependencies": {
     "@types/bun": "latest",
