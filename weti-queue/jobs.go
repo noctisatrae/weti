@@ -28,7 +28,7 @@ type Job struct {
 	Frequency  uint     `json:"frequency"`
 	Expiration string   `json:"expiration"`
 	Provider   Provider `json:"provider"`
-	Rpc 			 Rpc      `json:"rpc"`
+	Rpc        Rpc      `json:"rpc"`
 }
 
 type JobHandler struct {
@@ -47,15 +47,32 @@ type JobHandler struct {
 }
 
 // TODO MORALIS
-func (p Provider) Fetch(rpc Rpc) {
+func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	switch p {
 	case "moralis":
-		// TODO
+		req, err := Moralis{
+			Key: "https://site1.moralis-nodes.com/eth/",
+			Url: "b709baba444840c6a608baf627c5572c",
+			Ctx: ctx,
+		}.Fetch(rpc)
+		if err != nil {
+			log.Error("Failed to make request! |", "Error", err.Error())
+		}
+		return req
 	case "infura":
 		// TODO
+		return nil
 	case "alchemy":
 		// TODO
+		return nil
+	default:
+		log.Error("Provider not supported!", "Provider", p)
+		return nil
 	}
+}
+
+func (p Provider) Insert(res UntypedJson) {
+	log.Info("Inserting!")
 }
 
 func (j Job) ParseExpirationDate() (*time.Time, error) {
@@ -69,12 +86,18 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 
 // TODO error handling
 func (j Job) Fetch() {
-	j.Provider.Fetch(j.Rpc)
+	log.Info("Loading provider! |", "Provider", j.Provider)
+	res := j.Provider.Fetch(j.Rpc, context.Background())
+	if res == nil {
+		return
+	}
+
+	j.Provider.Insert(*res)
 }
 
 func (jh *JobHandler) PopulateJobList() error {
 	err := requests.
-		URL("http://localhost:3000/jobs").
+		URL("http://localhost:8000/jobs").
 		ToJSON(&jh.Jobs).
 		Bearer("helloworld").
 		Accept("application/json").
