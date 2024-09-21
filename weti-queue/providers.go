@@ -10,7 +10,6 @@ import (
 type UntypedJson map[string]interface{}
 
 type GeneralProvider interface {
-	Insert()
 	MakeEndpoint() string
 	Fetch(rpc Rpc)
 }
@@ -34,17 +33,17 @@ type Alchemy struct {
 }
 
 func (m Moralis) MakeEndpoint() string {
-	return fmt.Sprintf("%s%s", m.Url, m.Key)
+	return fmt.Sprintf("%s%s", m.Key, m.Url)
 }
 
 func (m Moralis) Fetch(rpc Rpc) (*UntypedJson, error) {
 	var response UntypedJson
-	
+
 	err := requests.
 		URL(m.MakeEndpoint()).
 		Accept("application/json").
 		BodyJSON(rpc).
-		ToJSON(response).
+		ToJSON(&response).
 		Fetch(m.Ctx)
 
 	if err != nil {
