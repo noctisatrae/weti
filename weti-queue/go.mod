@@ -30,6 +30,7 @@ require (
 
 require (
 	github.com/charmbracelet/log v0.4.0
+	github.com/go-pg/pg v8.0.7+incompatible
 	github.com/go-pg/pg/v10 v10.13.0
 	github.com/panjf2000/ants/v2 v2.10.0
 	golang.org/x/net v0.27.0 // indirect
