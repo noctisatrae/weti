@@ -33,7 +33,7 @@ type Alchemy struct {
 }
 
 func (m Moralis) MakeEndpoint() string {
-	return fmt.Sprintf("%s%s", m.Key, m.Url)
+	return fmt.Sprintf("%s%s", m.Url, m.Key)
 }
 
 func (m Moralis) Fetch(rpc Rpc) (*UntypedJson, error) {

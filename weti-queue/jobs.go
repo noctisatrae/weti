@@ -7,6 +7,7 @@ import (
 
 	"github.com/carlmjohnson/requests"
 	"github.com/charmbracelet/log"
+	"github.com/go-pg/pg/v10"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -44,15 +45,18 @@ type JobHandler struct {
 	Pool *ants.MultiPool
 	// Logger of the job handler
 	Logger log.Logger
+	// DB
+	Db     *pg.DB
 }
 
 // TODO MORALIS
 func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	switch p {
 	case "moralis":
+		// lol I committed that I'm so dumb. Anyways: TODO REGENERATE KEY
 		req, err := Moralis{
-			Key: "https://site1.moralis-nodes.com/eth/",
-			Url: "b709baba444840c6a608baf627c5572c",
+			Key: "b709baba444840c6a608baf627c5572c",
+			Url: "https://site1.moralis-nodes.com/eth/",
 			Ctx: ctx,
 		}.Fetch(rpc)
 		if err != nil {
@@ -71,7 +75,12 @@ func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	}
 }
 
-func (p Provider) Insert(res UntypedJson) {
+type RpcResponse struct {
+	Id int64
+	Data UntypedJson
+}
+
+func (j Job) Insert(res UntypedJson) {
 	log.Info("Inserting!")
 }
 
@@ -85,14 +94,16 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 }
 
 // TODO error handling
-func (j Job) Fetch() {
+// This function does one thing: fetch.
+// Then we return the RPC response if it's not nil!
+func (j Job) Fetch() UntypedJson {
 	log.Info("Loading provider! |", "Provider", j.Provider)
 	res := j.Provider.Fetch(j.Rpc, context.Background())
 	if res == nil {
-		return
+		return nil
 	}
 
-	j.Provider.Insert(*res)
+	return *res
 }
 
 func (jh *JobHandler) PopulateJobList() error {
@@ -126,13 +137,18 @@ func (jh JobHandler) ExecuteAll() {
 	wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
 
 	for i := 0; i < len(jh.Jobs); i++ {
-		log.Info("Executing a job in the worker pool! |", "Job", jh.Jobs[i])
+		// this will be included as a debug logging in production release => TODO set logging level with env var
+		log.Info("Executing a job in the worker pool! |", "Id", jh.Jobs[i].Id)
 
 		// Capture job in closure
 		job := jh.Jobs[i]
 		err := jh.AddToWorkerPool(func() {
 			defer wg.Done() // Mark job as done when it finishes
-			job.Fetch()
+			res := job.Fetch()
+			if res == nil {
+				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+			}
+			job.Insert(res)
 		})
 
 		if err != nil {
