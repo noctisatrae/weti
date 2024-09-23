@@ -227,6 +227,8 @@ func (jh JobHandler) ExecuteAll() {
 			ticker := time.NewTicker(time.Duration(job.Frequency) * time.Minute)
 			defer ticker.Stop()
 
+			// So... The ticker waits and THEN execute the code. So I need to write it twice so it does
+			// EXECUTE/REQUEST => Ticker WAIT => EXECUTE => GOTO STEP 2
 			res := job.Fetch()
 			if res == nil {
 				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
