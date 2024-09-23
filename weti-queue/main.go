@@ -16,10 +16,10 @@ func main() {
 	})
 	defer db.Close()
 
-	// err := createSchema(db)
-	// if err != nil {
-	// 	log.Fatal("Failed to create schema! |", "Error", err.Error())
-	// }
+	err := createSchema(db)
+	if err != nil {
+		log.Fatal("Failed to create schema! |", "Error", err.Error())
+	}
 
 	j := JobHandler{
 		Ctx:    context.Background(),
@@ -29,7 +29,7 @@ func main() {
 		Db:     db,
 	}
 
-	err := j.PopulateJobList()
+	err = j.PopulateJobList()
 	if err != nil {
 		log.Fatal("Failed to populate job list! |", "Err", err.Error())
 	}
