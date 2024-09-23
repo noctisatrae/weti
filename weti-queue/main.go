@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/go-pg/pg/v10"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	log.Info("Current UTC time! |", "Time", time.Now().UTC())
+
 	db := pg.Connect(&pg.Options{
 		Addr:     "localhost:5432",
 		User:     "postgres",
@@ -16,27 +19,34 @@ func main() {
 	})
 	defer db.Close()
 
-	err := createSchema(db)
-	if err != nil {
-		log.Fatal("Failed to create schema! |", "Error", err.Error())
-	}
+	// err := createSchema(db)
+	// if err != nil {
+	// 	log.Fatal("Failed to create schema! |", "Error", err.Error())
+	// }
+
+	dl := log.Default()
+	dl.SetLevel(log.DebugLevel)
 
 	j := JobHandler{
 		Ctx:    context.Background(),
 		Limit:  50,
 		RTime:  1000,
-		Logger: *log.Default(),
+		Logger: *dl,
 		Db:     db,
 	}
 
-	err = j.PopulateJobList()
+	err := j.PopulateJobList()
 	if err != nil {
 		log.Fatal("Failed to populate job list! |", "Err", err.Error())
 	}
 
 	log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
 
-	j.CreateWorkerPool()
+	err = j.CreateWorkerPool()
+	if err != nil {
+		log.Fatal("Failed to create worker pool! |", "Error", err.Error())
+	}
+
 	log.Info("Created worker pool!", "Workers", j.Pool.Cap())
 	j.ExecuteAll()
 }
