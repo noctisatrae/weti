@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"reflect"
 	"sync"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 
 type Provider string
 type WorkerFunc func()
+
+const (
+	PG_LAYOUT = "2006-01-02 15:04:05.999999999"
+)
 
 const (
 	ProviderMoralis Provider = "moralis"
@@ -46,7 +51,7 @@ type JobHandler struct {
 	// Logger of the job handler
 	Logger log.Logger
 	// DB
-	Db     *pg.DB
+	Db *pg.DB
 }
 
 // TODO MORALIS
@@ -75,17 +80,70 @@ func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	}
 }
 
-type RpcResponse struct {
-	Id int64
-	Data UntypedJson
+// This doesn't need to log so much INFO stuff. We just need to DEBUG
+// I used AI to go from a simple insert to this montruosity. TODO review code efficiency and improve logging
+func (j Job) Insert(db *pg.DB, data UntypedJson) {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		log.Error("Failed to start transaction |", "Reason", err.Error())
+		return
+	}
+	defer tx.Rollback() // Ensures rollback in case of failure
+
+	var rawData map[string]interface{}
+	// Query for existing data as raw bytes
+	_, err = tx.Query(&rawData, "SELECT data FROM rpc_responses WHERE id = ?", j.Id)
+	if err == pg.ErrNoRows {
+		// No existing data, perform INSERT
+		err = insertResponse(tx, j.Id, data)
+		if err != nil {
+			log.Error("Failed to insert! |", "Reason", err.Error())
+			return
+		}
+		log.Info("Inserted successfully! |", "Id", j.Id)
+	} else if err == nil {
+		existingData := rawData
+
+		// Perform UPDATE if data differs
+		if !reflect.DeepEqual(existingData, data) {
+			err = updateResponse(tx, j.Id, data)
+			if err != nil {
+				log.Error("Failed to update! |", "Reason", err.Error())
+				return
+			}
+		} else {
+			log.Info("Data is the same, no changes needed")
+		}
+	} else {
+		// Handle other potential database errors
+		log.Error("Database error |", "Reason", err.Error())
+		return
+	}
+
+	// Commit transaction if no errors occurred
+	err = tx.Commit()
+	if err != nil {
+		log.Error("Failed to commit transaction |", "Reason", err.Error())
+		return
+	}
 }
 
-func (j Job) Insert(res UntypedJson) {
-	log.Info("Inserting!")
+func insertResponse(tx *pg.Tx, id int, data UntypedJson) error {
+	_, err := tx.Model(&RpcResponse{
+		Id:   id,
+		Data: data,
+	}).Insert()
+	return err
+}
+
+func updateResponse(tx *pg.Tx, id int, data UntypedJson) error {
+	_, err := tx.Exec("UPDATE rpc_responses SET data = ? WHERE id = ?", data, id)
+	return err
 }
 
 func (j Job) ParseExpirationDate() (*time.Time, error) {
-	parsedDate, err := time.Parse("2006-01-02 15:04:05.000", j.Expiration)
+	parsedDate, err := time.Parse(PG_LAYOUT, j.Expiration)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +155,6 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 // This function does one thing: fetch.
 // Then we return the RPC response if it's not nil!
 func (j Job) Fetch() UntypedJson {
-	log.Info("Loading provider! |", "Provider", j.Provider)
 	res := j.Provider.Fetch(j.Rpc, context.Background())
 	if res == nil {
 		return nil
@@ -132,23 +189,65 @@ func (jh JobHandler) AddToWorkerPool(t WorkerFunc) error {
 	return err
 }
 
+func CheckIfExpired(toCheck time.Time, job Job) bool {
+	return toCheck.After(time.Now())
+}
+
 func (jh JobHandler) ExecuteAll() {
 	var wg sync.WaitGroup
 	wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
 
 	for i := 0; i < len(jh.Jobs); i++ {
 		// this will be included as a debug logging in production release => TODO set logging level with env var
-		log.Info("Executing a job in the worker pool! |", "Id", jh.Jobs[i].Id)
+		log.Info("Executing a job in the worker pool! |", "Id", jh.Jobs[i].Id, "Provider", jh.Jobs[i].Provider)
 
 		// Capture job in closure
 		job := jh.Jobs[i]
+		// So the goal here is to run the query every X minutes :) and before running it, check the expiration date
+		// We're going to go with something super simple here. But this could be largely optimized.
+		// - job.insert() could be broken down in many pieces that are only ran if necessary to save computing power
+		// ...
+		// Gotta go fast tho
 		err := jh.AddToWorkerPool(func() {
 			defer wg.Done() // Mark job as done when it finishes
+
+			expirationTime, err := job.ParseExpirationDate()
+			if err != nil {
+				log.Error("Failed to parse expiration date!", "Id", job.Id, "Error", err.Error())
+				return
+			}
+
+			// is there an edge case where the job is expired when it's loaded in to the job list?
+
+			if CheckIfExpired(*expirationTime, job) {
+				log.Info("Job expired! We're done here... bailing out! |", "Id", job.Id)
+				return
+			}
+
+			ticker := time.NewTicker(time.Duration(job.Frequency) * time.Minute)
+			defer ticker.Stop()
+
 			res := job.Fetch()
 			if res == nil {
 				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+			} else {
+				job.Insert(jh.Db, res)
 			}
-			job.Insert(res)
+
+			// Now start the ticker to handle subsequent runs
+			for range ticker.C {
+				if CheckIfExpired(*expirationTime, job) {
+					log.Info("Job expired! We're done here... bailing out! |", "Id", job.Id)
+					return
+				}
+
+				res := job.Fetch()
+				if res == nil {
+					log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+				} else {
+					job.Insert(jh.Db, res)
+				}
+			}
 		})
 
 		if err != nil {
