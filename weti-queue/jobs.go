@@ -54,7 +54,6 @@ type JobHandler struct {
 	Db *pg.DB
 }
 
-// TODO MORALIS
 func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	switch p {
 	case "moralis":
@@ -80,45 +79,45 @@ func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
 	}
 }
 
-// This doesn't need to log so much INFO stuff. We just need to DEBUG
-// I used AI to go from a simple insert to this montruosity. TODO review code efficiency and improve logging
 func (j Job) Insert(db *pg.DB, data UntypedJson) {
 	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
-		log.Error("Failed to start transaction |", "Reason", err.Error())
+		log.Error("Failed to start transaction | Reason:", err.Error())
 		return
 	}
 	defer tx.Rollback() // Ensures rollback in case of failure
 
 	var rawData map[string]interface{}
-	// Query for existing data as raw bytes
+	// Query for existing data
 	_, err = tx.Query(&rawData, "SELECT data FROM rpc_responses WHERE id = ?", j.Id)
-	if err == pg.ErrNoRows {
+	if err != nil {
+		log.Error("Failed to query existing data |", "Reason", err.Error())
+		return
+	}
+
+	// Check if rawData is empty (no existing data)
+	if rawData == nil {
 		// No existing data, perform INSERT
 		err = insertResponse(tx, j.Id, data)
 		if err != nil {
 			log.Error("Failed to insert! |", "Reason", err.Error())
 			return
 		}
-		log.Info("Inserted successfully! |", "Id", j.Id)
-	} else if err == nil {
-		existingData := rawData
-
+		log.Debug("Inserted successfully |", "Id", j.Id)
+	} else {
 		// Perform UPDATE if data differs
-		if !reflect.DeepEqual(existingData, data) {
+		// TODO This always returns false. So we always update => waste of resources
+		if !reflect.DeepEqual(UntypedJson(rawData), data) {
 			err = updateResponse(tx, j.Id, data)
 			if err != nil {
 				log.Error("Failed to update! |", "Reason", err.Error())
 				return
 			}
+			log.Debug("Updated successfully |", "Id", j.Id)
 		} else {
-			log.Info("Data is the same, no changes needed")
+			log.Debug("Data is the same, no changes needed |", "Id", j.Id)
 		}
-	} else {
-		// Handle other potential database errors
-		log.Error("Database error |", "Reason", err.Error())
-		return
 	}
 
 	// Commit transaction if no errors occurred
@@ -151,9 +150,6 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 	return &parsedDate, nil
 }
 
-// TODO error handling
-// This function does one thing: fetch.
-// Then we return the RPC response if it's not nil!
 func (j Job) Fetch() UntypedJson {
 	res := j.Provider.Fetch(j.Rpc, context.Background())
 	if res == nil {
@@ -190,19 +186,19 @@ func (jh JobHandler) AddToWorkerPool(t WorkerFunc) error {
 }
 
 func CheckIfExpired(toCheck time.Time, job Job) bool {
-	return toCheck.After(time.Now())
+	return time.Now().UTC().After(toCheck)
 }
 
 func (jh JobHandler) ExecuteAll() {
 	var wg sync.WaitGroup
 	wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
 
-	for i := 0; i < len(jh.Jobs); i++ {
-		// this will be included as a debug logging in production release => TODO set logging level with env var
-		log.Info("Executing a job in the worker pool! |", "Id", jh.Jobs[i].Id, "Provider", jh.Jobs[i].Provider)
+	for _, job := range jh.Jobs {
+		log.Info("Executing a job in the worker pool! |", "Id", job.Id, "Provider", job.Provider)
 
 		// Capture job in closure
-		job := jh.Jobs[i]
+		job := job // Shadow the loop variable
+		wg.Add(1)
 		// So the goal here is to run the query every X minutes :) and before running it, check the expiration date
 		// We're going to go with something super simple here. But this could be largely optimized.
 		// - job.insert() could be broken down in many pieces that are only ran if necessary to save computing power
@@ -217,18 +213,30 @@ func (jh JobHandler) ExecuteAll() {
 				return
 			}
 
-			// is there an edge case where the job is expired when it's loaded in to the job list?
-
+			// Check if the job is expired initially
 			if CheckIfExpired(*expirationTime, job) {
-				log.Info("Job expired! We're done here... bailing out! |", "Id", job.Id)
+				log.Info("Job expired before execution! |", "Id", job.Id, "Date", job.Expiration)
 				return
 			}
+
+			// Create a channel to signal expiration
+			expired := make(chan struct{})
+
+			// Start a goroutine to check for expiration
+			go func() {
+				for {
+					if CheckIfExpired(*expirationTime, job) {
+						close(expired) // Signal that the job has expired
+						return
+					}
+					time.Sleep(time.Second) // Check every second
+				}
+			}()
 
 			ticker := time.NewTicker(time.Duration(job.Frequency) * time.Minute)
 			defer ticker.Stop()
 
-			// So... The ticker waits and THEN execute the code. So I need to write it twice so it does
-			// EXECUTE/REQUEST => Ticker WAIT => EXECUTE => GOTO STEP 2
+			// Initial fetch and insert
 			res := job.Fetch()
 			if res == nil {
 				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
@@ -237,17 +245,19 @@ func (jh JobHandler) ExecuteAll() {
 			}
 
 			// Now start the ticker to handle subsequent runs
-			for range ticker.C {
-				if CheckIfExpired(*expirationTime, job) {
-					log.Info("Job expired! We're done here... bailing out! |", "Id", job.Id)
+			for {
+				select {
+				case <-expired:
+					log.Debug("Job expired during execution! |", "Id", job.Id)
+					wg.Done()
 					return
-				}
-
-				res := job.Fetch()
-				if res == nil {
-					log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
-				} else {
-					job.Insert(jh.Db, res)
+				case <-ticker.C:
+					res := job.Fetch()
+					if res == nil {
+						log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+					} else {
+						job.Insert(jh.Db, res)
+					}
 				}
 			}
 		})
@@ -256,7 +266,6 @@ func (jh JobHandler) ExecuteAll() {
 			log.Error("Failed to add job to worker pool! |", "error", err)
 		}
 	}
-
 	// Wait for all jobs to finish
 	wg.Wait()
 }
