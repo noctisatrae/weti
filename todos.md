@@ -9,3 +9,4 @@
 - [ ] test insert queries (not very important => go on)
 - [X] don't wait for the end of the ticker to check if the job is done
 - [ ] find a way to not add jobs already in the worker pool (pretty important to not fuck up resources management => DO IT ASAP)
+- [ ] /watch reponse should be the id of the job not just a shitty generic unhelpful res
