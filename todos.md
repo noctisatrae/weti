@@ -1,12 +1,13 @@
-# todo
-- [X] implement Moralis provider (providers.go)
-- [X] implement fetch provider (jobs.go)
-- [ ] implement .env / config loading (least important for now)
-- [X] implement insert queries (most important => implemented once for all providers | associate data with task id for easy retrieval)
-- [X] Update data when the data of a job ID changed :)!
-- [X] Test if data updates work well (test deepEqual)
+- [x] implement Moralis provider (providers.go)
+- [x] implement fetch provider (jobs.go)
+- [x] implement insert queries (most important => implemented once for all providers | associate data with task id for easy retrieval)
+- [x] Update data when the data of a job ID changed :)!
+- [x] don't wait for the end of the ticker to check if the job is done
+- [x] find a way to not add jobs already in the worker pool (pretty important to not fuck up resources management => DO IT ASAP)
+- [x] Test if data updates work well (test deepEqual) => spoiler: **It doesn't**
 - [ ] solve todo jobs.go#l.111 (pretty important)
 - [ ] test insert queries (not very important => go on)
-- [X] don't wait for the end of the ticker to check if the job is done
-- [ ] find a way to not add jobs already in the worker pool (pretty important to not fuck up resources management => DO IT ASAP)
-- [ ] /watch reponse should be the id of the job not just a shitty generic unhelpful res
+- [ ] test job expiration (kinda important to finish the backend)
+- [ ] implement .env / config loading (least important for now)
+- [ ] better way to get providers => solve .env/config.toml (above)
+- [ ] /watch response should be the id of the job not just a shitty generic unhelpful res (EASIEST & MOST IMPORTANT!)
