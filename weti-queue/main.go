@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/log"
@@ -27,28 +28,41 @@ func main() {
 	dl := log.Default()
 	dl.SetLevel(log.DebugLevel)
 
+	var wg sync.WaitGroup
+
 	j := JobHandler{
 		Ctx:    context.Background(),
 		Limit:  50,
 		RTime:  1000,
 		Logger: *dl,
 		Db:     db,
+		Wg:     &wg,
 	}
 
-	err := j.PopulateJobList()
-	if err != nil {
-		log.Fatal("Failed to populate job list! |", "Err", err.Error())
-	}
-
-	log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
-
-	err = j.CreateWorkerPool()
+	err := j.CreateWorkerPool()
 	if err != nil {
 		log.Fatal("Failed to create worker pool! |", "Error", err.Error())
 	}
-
 	log.Info("Created worker pool!", "Workers", j.Pool.Cap())
+
+	// TODO implement graceful shutdown
+	// ! REMEMBER TO STOP THIS TICKER
+	ticker := time.NewTicker(30 * time.Second)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for ; true; <-ticker.C {
+			err := j.PopulateJobList()
+			log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
+			if err != nil {
+				log.Fatal("Failed to populate job list! |", "Err", err.Error())
+			}
+		}
+	}()
+
 	j.ExecuteAll()
+
+	wg.Wait()
 }
 
 func createSchema(db *pg.DB) error {
