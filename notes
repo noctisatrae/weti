@@ -1,5 +1,31 @@
-https://ethereum.org/en/developers/docs/oracles/#publish-subscribe-oracles
+```toml
+# example config for mundane configuration stuff
+[db]
+addr = "localhost:5432"
+user = "postgres"
+# password in .env
 
+[job_handler]
+limit = 
+rtime = 
+
+[logger]
+debug = 
+```
+
+```toml
+# example of .env config
+# prefixed to not polute env space
+WETI_API_TOKEN=helloworld
+WETI_API_PORT=8000
+WETI_DB_PASSWORD=jesuisunecarotte
+WETI_DB_URL=postgres://postgres:jesuisunecarotte@db:5432/postgres
+
+# format: PROVIDER_CHAINID = "url of the endpoint"
+# those misconfiguration should be logged at the WARN level
+MORALIS_1 = ""
+ALCHEMY_144 = ""
+```
 
 (to_timestamp(${Date.now()} / 1000.0)
 

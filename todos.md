@@ -11,3 +11,4 @@
 - [ ] implement .env / config loading (least important for now)
 - [ ] better way to get providers => solve .env/config.toml (above)
 - [ ] /watch response should be the id of the job not just a shitty generic unhelpful res (EASIEST & MOST IMPORTANT!)
+- [ ] prefix env variables so you don't pollute the environement with userspace crap
