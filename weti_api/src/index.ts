@@ -40,7 +40,7 @@ app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
     return c.json({
       // @ts-ignore
       // TS is dumb AF I need a typescript wizard in my life!
-      jobId: result.id
+      id: result[0].id
     });
   } catch (error) {
     console.error('Error inserting into DB:', error);
