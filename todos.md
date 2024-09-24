@@ -6,9 +6,9 @@
 - [x] find a way to not add jobs already in the worker pool (pretty important to not fuck up resources management => DO IT ASAP)
 - [x] Test if data updates work well (test deepEqual) => spoiler: **It doesn't**
 - [ ] solve todo jobs.go#l.111 (pretty important)
-- [ ] test insert queries (not very important => go on)
-- [ ] test job expiration (kinda important to finish the backend)
+- [x] test insert queries (not very important => go on)
+- [x] test job expiration (kinda important to finish the backend)
 - [ ] implement .env / config loading (least important for now)
 - [ ] better way to get providers => solve .env/config.toml (above)
-- [ ] /watch response should be the id of the job not just a shitty generic unhelpful res (EASIEST & MOST IMPORTANT!)
+- [x] /watch response should be the id of the job not just a shitty generic unhelpful res (EASIEST & MOST IMPORTANT!)
 - [ ] prefix env variables so you don't pollute the environement with userspace crap
