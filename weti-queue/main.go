@@ -68,6 +68,7 @@ func main() {
 		}
 
 		// Execute the work immediately
+		// TODO: find a name for this
 		doWork()
 
 		// Loop for subsequent executions based on the ticker
