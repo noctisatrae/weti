@@ -20,10 +20,12 @@ func main() {
 	})
 	defer db.Close()
 
-	// err := createSchema(db)
-	// if err != nil {
-	// 	log.Fatal("Failed to create schema! |", "Error", err.Error())
-	// }
+	// TODO: find a way to replicate the IF NOT EXIST behaviour
+	// ! This will error if migrations already exist :)
+	err := createSchema(db)
+	if err != nil {
+		log.Fatal("Failed to create schema! |", "Error", err.Error())
+	}
 
 	dl := log.Default()
 	dl.SetLevel(log.DebugLevel)
@@ -40,7 +42,7 @@ func main() {
 		ExecutedJobs: &sync.Map{},
 	}
 
-	err := j.CreateWorkerPool()
+	err = j.CreateWorkerPool()
 	if err != nil {
 		log.Fatal("Failed to create worker pool! |", "Error", err.Error())
 	}
