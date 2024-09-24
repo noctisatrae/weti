@@ -46,8 +46,6 @@ func main() {
 	}
 	log.Info("Created worker pool!", "Workers", j.Pool.Cap())
 
-	// TODO implement graceful shutdown
-	// ! REMEMBER TO STOP THIS TICKER
 	// Create a context to handle graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
