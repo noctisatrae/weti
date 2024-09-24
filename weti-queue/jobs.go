@@ -244,11 +244,20 @@ func (jh JobHandler) ExecuteAll() {
 				job.Insert(jh.Db, res)
 			}
 
-			// Now start the ticker to handle subsequent runs
+			// If this didn't need to run concurrently, I could just do:
+			// ticker := time.NewTicker(period)
+			// for ; true; <-ticker.C {
+			// 	...
+			// }
+			// But it's a select statement!
+			// See https://github.com/golang/go/issues/17601
+
 			for {
 				select {
 				case <-expired:
 					log.Debug("Job expired during execution! |", "Id", job.Id)
+					// normally this will end the worker function & stop the ticker so it doesn't leak.
+					// TODO check in a debugger
 					wg.Done()
 					return
 				case <-ticker.C:
