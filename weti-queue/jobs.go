@@ -48,6 +48,8 @@ type JobHandler struct {
 	RTime int
 	// Pool of workers
 	Pool *ants.MultiPool
+	// Waitgroup
+	Wg *sync.WaitGroup
 	// Logger of the job handler
 	Logger log.Logger
 	// DB
@@ -190,22 +192,21 @@ func CheckIfExpired(toCheck time.Time, job Job) bool {
 }
 
 func (jh JobHandler) ExecuteAll() {
-	var wg sync.WaitGroup
-	wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
+	jh.Wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
 
 	for _, job := range jh.Jobs {
 		log.Info("Executing a job in the worker pool! |", "Id", job.Id, "Provider", job.Provider)
 
 		// Capture job in closure
 		job := job // Shadow the loop variable
-		wg.Add(1)
+		jh.Wg.Add(1)
 		// So the goal here is to run the query every X minutes :) and before running it, check the expiration date
 		// We're going to go with something super simple here. But this could be largely optimized.
 		// - job.insert() could be broken down in many pieces that are only ran if necessary to save computing power
 		// ...
 		// Gotta go fast tho
 		err := jh.AddToWorkerPool(func() {
-			defer wg.Done() // Mark job as done when it finishes
+			defer jh.Wg.Done() // Mark job as done when it finishes
 
 			expirationTime, err := job.ParseExpirationDate()
 			if err != nil {
@@ -258,7 +259,7 @@ func (jh JobHandler) ExecuteAll() {
 					log.Debug("Job expired during execution! |", "Id", job.Id)
 					// normally this will end the worker function & stop the ticker so it doesn't leak.
 					// TODO check in a debugger
-					wg.Done()
+					jh.Wg.Done()
 					return
 				case <-ticker.C:
 					res := job.Fetch()
@@ -275,6 +276,4 @@ func (jh JobHandler) ExecuteAll() {
 			log.Error("Failed to add job to worker pool! |", "error", err)
 		}
 	}
-	// Wait for all jobs to finish
-	wg.Wait()
 }
