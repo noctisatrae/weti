@@ -31,12 +31,13 @@ func main() {
 	var wg sync.WaitGroup
 
 	j := JobHandler{
-		Ctx:    context.Background(),
-		Limit:  50,
-		RTime:  1000,
-		Logger: *dl,
-		Db:     db,
-		Wg:     &wg,
+		Ctx:          context.Background(),
+		Limit:        50,
+		RTime:        1000,
+		Logger:       *dl,
+		Db:           db,
+		Wg:           &wg,
+		ExecutedJobs: &sync.Map{},
 	}
 
 	err := j.CreateWorkerPool()
@@ -47,20 +48,41 @@ func main() {
 
 	// TODO implement graceful shutdown
 	// ! REMEMBER TO STOP THIS TICKER
+	// Create a context to handle graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ticker := time.NewTicker(30 * time.Second)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for ; true; <-ticker.C {
+		defer ticker.Stop()
+
+		// Initial work before entering the ticker loop
+		doWork := func() {
 			err := j.PopulateJobList()
-			log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
+			go j.ExecuteAll()
 			if err != nil {
-				log.Fatal("Failed to populate job list! |", "Err", err.Error())
+				log.Error("Failed to populate job list! |", "Err", err.Error())
+				return
+			}
+			log.Info("Populated joblist! |", "Jobs", len(j.Jobs))
+		}
+
+		// Execute the work immediately
+		doWork()
+
+		// Loop for subsequent executions based on the ticker
+		for {
+			select {
+			case <-ctx.Done(): // Graceful shutdown
+				log.Info("Shutting down the job list populating loop.")
+				return
+			case <-ticker.C: // Perform work on each tick
+				doWork()
 			}
 		}
 	}()
-
-	j.ExecuteAll()
 
 	wg.Wait()
 }
