@@ -54,6 +54,11 @@ type JobHandler struct {
 	Logger log.Logger
 	// DB
 	Db *pg.DB
+	// Jobs being executed
+	// ! anecdote: int for BIGSERIAL only works in 64-bit system I think...
+	// ? we need a mutex because map write are not concurrent in Go could this be a bottleneck
+	// ? let's use: sync.Map[int]struct{} | see: https://pkg.go.dev/sync#Map
+	ExecutedJobs *sync.Map
 }
 
 func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
@@ -162,9 +167,11 @@ func (j Job) Fetch() UntypedJson {
 }
 
 func (jh *JobHandler) PopulateJobList() error {
+	var newJobs []Job
+
 	err := requests.
 		URL("http://localhost:8000/jobs").
-		ToJSON(&jh.Jobs).
+		ToJSON(&newJobs). // Fetch new jobs into a temporary slice
 		Bearer("helloworld").
 		Accept("application/json").
 		BodyJSON(GetJobRequest{
@@ -172,7 +179,22 @@ func (jh *JobHandler) PopulateJobList() error {
 		}).
 		Fetch(jh.Ctx)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	log.Debug(newJobs)
+
+	// Filter out jobs that have already been executed
+	for _, job := range newJobs {
+		if _, executed := jh.ExecutedJobs.Load(job.Id); !executed {
+			jh.ExecutedJobs.Store(job.Id, struct{}{}) // Mark as executed
+			log.Debug("New job?", "Id", job.Id)
+			jh.Jobs = append(jh.Jobs, job)
+		}
+	}
+
+	return nil
 }
 
 func (jh *JobHandler) CreateWorkerPool() error {
@@ -191,7 +213,7 @@ func CheckIfExpired(toCheck time.Time, job Job) bool {
 	return time.Now().UTC().After(toCheck)
 }
 
-func (jh JobHandler) ExecuteAll() {
+func (jh *JobHandler) ExecuteAll() {
 	jh.Wg.Add(len(jh.Jobs)) // Add the total number of jobs to the WaitGroup
 
 	for _, job := range jh.Jobs {
@@ -200,11 +222,8 @@ func (jh JobHandler) ExecuteAll() {
 		// Capture job in closure
 		job := job // Shadow the loop variable
 		jh.Wg.Add(1)
-		// So the goal here is to run the query every X minutes :) and before running it, check the expiration date
-		// We're going to go with something super simple here. But this could be largely optimized.
-		// - job.insert() could be broken down in many pieces that are only ran if necessary to save computing power
-		// ...
-		// Gotta go fast tho
+
+		// Add the job execution to the worker pool
 		err := jh.AddToWorkerPool(func() {
 			defer jh.Wg.Done() // Mark job as done when it finishes
 
@@ -214,11 +233,14 @@ func (jh JobHandler) ExecuteAll() {
 				return
 			}
 
-			// Check if the job is expired initially
+			// Skip expired jobs
 			if CheckIfExpired(*expirationTime, job) {
 				log.Info("Job expired before execution! |", "Id", job.Id, "Date", job.Expiration)
 				return
 			}
+
+			// Mark the job as executed
+			jh.ExecutedJobs.Store(job.Id, struct{}{})
 
 			// Create a channel to signal expiration
 			expired := make(chan struct{})
@@ -245,21 +267,10 @@ func (jh JobHandler) ExecuteAll() {
 				job.Insert(jh.Db, res)
 			}
 
-			// If this didn't need to run concurrently, I could just do:
-			// ticker := time.NewTicker(period)
-			// for ; true; <-ticker.C {
-			// 	...
-			// }
-			// But it's a select statement!
-			// See https://github.com/golang/go/issues/17601
-
 			for {
 				select {
 				case <-expired:
 					log.Debug("Job expired during execution! |", "Id", job.Id)
-					// normally this will end the worker function & stop the ticker so it doesn't leak.
-					// TODO check in a debugger
-					jh.Wg.Done()
 					return
 				case <-ticker.C:
 					res := job.Fetch()
@@ -276,4 +287,10 @@ func (jh JobHandler) ExecuteAll() {
 			log.Error("Failed to add job to worker pool! |", "error", err)
 		}
 	}
+
+	// Clear the job list after execution
+	jh.Jobs = []Job{}
+
+	// Wait for all jobs to finish
+	jh.Wg.Wait()
 }
