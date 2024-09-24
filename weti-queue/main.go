@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -98,7 +100,12 @@ func createSchema(db *pg.DB) error {
 			Temp: false,
 		})
 		if err != nil {
-			return err
+			if strings.Contains(err.Error(), "42P07") || strings.Contains(err.Error(), "already exists") {
+				log.Warn("Relation already exist! Skipping... |", "Relation", fmt.Sprintf("%T", model))
+				continue
+			} else {
+				return err
+			}
 		}
 	}
 	return nil
