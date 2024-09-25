@@ -3,7 +3,7 @@ import postgres from 'postgres'
 
 import { watchRequest } from './schema';
 
-const DB_URL: string = process.env.DB_URL!;
+const DB_URL: string = process.env.WETI_DB_URL!;
 
 if (DB_URL === undefined) {
   console.error("DB_URL not set! Quitting...");

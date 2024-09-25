@@ -9,8 +9,8 @@ import db from "../db";
 import startMigration from '../db/migrate';
 import { watchRequest, watchRequestSchema } from "../db/schema"
 
-const TOKEN: string = process.env.TOKEN!;
-const PORT: number = (process.env.PORT === undefined ? 3000 : +process.env.PORT);
+const TOKEN: string = process.env.WETI_API_TOKEN!;
+const PORT: number = (process.env.WETI_API_PORT === undefined ? 3000 : +process.env.WETI_API_PORT);
 
 const getJobsSchema = z.object({
   limit: z.number()
