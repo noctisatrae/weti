@@ -14,6 +14,7 @@ const ethereumRPCSchema = z.object({
 type RPC = z.infer<typeof ethereumRPCSchema>;
 const watchRequest = pgTable('jobs', {
   id: bigserial("id", { mode: "number" }).primaryKey(),
+  chainId: integer("chain_id"),
   frequency: integer("frequency"),
   expiration: timestamp('expiration', { mode: "string" }),
   provider: providerEnum('providers'),

@@ -31,6 +31,7 @@ type GetJobRequest struct {
 
 type Job struct {
 	Id         int      `json:"id"`
+	ChainId    uint     `json:"chainId"`
 	Frequency  uint     `json:"frequency"`
 	Expiration string   `json:"expiration"`
 	Provider   Provider `json:"provider"`
