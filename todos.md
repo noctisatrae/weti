@@ -5,10 +5,13 @@
 - [x] don't wait for the end of the ticker to check if the job is done
 - [x] find a way to not add jobs already in the worker pool (pretty important to not fuck up resources management => DO IT ASAP)
 - [x] Test if data updates work well (test deepEqual) => spoiler: **It doesn't**
-- [ ] solve todo jobs.go#l.111 (pretty important)
 - [x] test insert queries (not very important => go on)
 - [x] test job expiration (kinda important to finish the backend)
-- [ ] implement .env / config loading (least important for now)
-- [ ] better way to get providers => solve .env/config.toml (above)
+- [x] implement .env / config loading (least important for now)
 - [x] /watch response should be the id of the job not just a shitty generic unhelpful res (EASIEST & MOST IMPORTANT!)
-- [ ] prefix env variables so you don't pollute the environement with userspace crap
+- [x] prefix env variables so you don't pollute the environement with userspace crap
+- [ ] add a row to the job SQL relation to know which chainId to make the request on! (**choose provider endpoint from .env**)
+- [ ] better way to get providers => solve .env/config.toml (solve above first)
+- [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
+- [ ] read through the codebase to see what's to be re-organized! (**separation of types and implementations - worth it?**)
+- [ ] solve todo jobs.go#l.111 (pretty important => equality of untyped structures **ASK FOR HELP ONLINE**)
