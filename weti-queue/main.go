@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"noctisatrae/weti-queue/config"
+
 	"github.com/charmbracelet/log"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -14,6 +16,13 @@ import (
 
 func main() {
 	log.Info("Current UTC time! |", "Time", time.Now().UTC())
+
+	config := config.Parse("config.toml")
+	dl := log.Default()
+	if config.Logger.Debug == true {
+		dl.SetLevel(log.DebugLevel)
+		log.Debug("Debug mode activated!")
+	}
 
 	db := pg.Connect(&pg.Options{
 		Addr:     "localhost:5432",
@@ -27,15 +36,12 @@ func main() {
 		log.Fatal("Failed to create schema! |", "Error", err.Error())
 	}
 
-	dl := log.Default()
-	dl.SetLevel(log.DebugLevel)
-
 	var wg sync.WaitGroup
 
 	j := JobHandler{
 		Ctx:          context.Background(),
-		Limit:        50,
-		RTime:        1000,
+		Limit:        config.JobHandler.Limit,
+		RTime:        config.JobHandler.Rtime,
 		Logger:       *dl,
 		Db:           db,
 		Wg:           &wg,
@@ -58,7 +64,6 @@ func main() {
 		defer wg.Done()
 		defer ticker.Stop()
 
-		// Initial work before entering the ticker loop
 		doWork := func() {
 			err := j.PopulateJobList()
 			go j.ExecuteAll()
