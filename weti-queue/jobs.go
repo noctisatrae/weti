@@ -59,6 +59,8 @@ type JobHandler struct {
 	// ? we need a mutex because map write are not concurrent in Go could this be a bottleneck
 	// ? let's use: sync.Map[int]struct{} | see: https://pkg.go.dev/sync#Map
 	ExecutedJobs *sync.Map
+	// The address of the API that provides the jobs
+	JobProvider string
 }
 
 func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
@@ -170,7 +172,7 @@ func (jh *JobHandler) PopulateJobList() error {
 	var newJobs []Job
 
 	err := requests.
-		URL("http://localhost:8000/jobs").
+		URL(jh.JobProvider).
 		ToJSON(&newJobs). // Fetch new jobs into a temporary slice
 		Bearer("helloworld").
 		Accept("application/json").

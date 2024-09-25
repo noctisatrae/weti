@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"os"
 	"sync"
 	"time"
 
@@ -12,10 +13,26 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	log.Info("Current UTC time! |", "Time", time.Now().UTC())
+
+  err := godotenv.Load()
+  if err != nil {
+    log.Warn("Error loading .env file! Are you passing them through command-line? |", "Error", err.Error())
+  }
+
+	purl := os.Getenv("WETI_DB_URL")
+	if len(purl) == 0 {
+		log.Fatal("No DB URL provided through env!")
+	}
+
+	dopt, err := ParsePgUrl(purl)
+	if err != nil {
+		log.Fatal("Failed to parse DB URL! |", "Error", err.Error())
+	}
 
 	config := config.Parse("config.toml")
 	dl := log.Default()
@@ -24,14 +41,10 @@ func main() {
 		log.Debug("Debug mode activated!")
 	}
 
-	db := pg.Connect(&pg.Options{
-		Addr:     "localhost:5432",
-		User:     "postgres",
-		Password: "jesuisunecarotte",
-	})
+	db := pg.Connect(&dopt)
 	defer db.Close()
 
-	err := createSchema(db)
+	err = createSchema(db)
 	if err != nil {
 		log.Fatal("Failed to create schema! |", "Error", err.Error())
 	}
@@ -46,6 +59,7 @@ func main() {
 		Db:           db,
 		Wg:           &wg,
 		ExecutedJobs: &sync.Map{},
+		JobProvider: config.JobHandler.JobProvider,
 	}
 
 	err = j.CreateWorkerPool()
