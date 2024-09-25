@@ -15,3 +15,4 @@
 - [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
 - [ ] read through the codebase to see what's to be re-organized! (**separation of types and implementations - worth it?**)
 - [ ] solve todo jobs.go#l.111 (pretty important => equality of untyped structures **ASK FOR HELP ONLINE**)
+- [ ] containerizatin of weti-queue!
