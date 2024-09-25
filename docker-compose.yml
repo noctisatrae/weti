@@ -30,7 +30,7 @@ services:
       timeout: 5s
       retries: 5
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${WETI_DB_PASSWORD}
 
 networks:
   default:
