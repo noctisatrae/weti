@@ -1,10 +1,4 @@
 ```toml
-# example config for mundane configuration stuff
-[db]
-addr = "localhost:5432"
-user = "postgres"
-# password in .env
-
 [job_handler]
 limit = 50
 rtime = 1000
