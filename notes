@@ -6,11 +6,11 @@ user = "postgres"
 # password in .env
 
 [job_handler]
-limit = 
-rtime = 
+limit = 50
+rtime = 1000
 
 [logger]
-debug = 
+debug = true
 ```
 
 ```toml
