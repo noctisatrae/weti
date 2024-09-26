@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,19 +27,6 @@ const (
 	ProviderInfura  Provider = "infura"
 	ProviderAlchemy Provider = "alchemy"
 )
-
-type GetJobRequest struct {
-	Limit int `json:"limit"`
-}
-
-type Job struct {
-	Id         int      `json:"id"`
-	ChainId    uint     `json:"chainId"`
-	Frequency  uint     `json:"frequency"`
-	Expiration string   `json:"expiration"`
-	Provider   Provider `json:"provider"`
-	Rpc        Rpc      `json:"rpc"`
-}
 
 type JobHandler struct {
 	// Jobs stack to be executed
@@ -62,31 +52,6 @@ type JobHandler struct {
 	ExecutedJobs *sync.Map
 	// The address of the API that provides the jobs
 	JobProvider string
-}
-
-func (p Provider) Fetch(rpc Rpc, ctx context.Context) *UntypedJson {
-	switch p {
-	case "moralis":
-		// lol I committed that I'm so dumb. Anyways: TODO REGENERATE KEY
-		req, err := Moralis{
-			Key: "b709baba444840c6a608baf627c5572c",
-			Url: "https://site1.moralis-nodes.com/eth/",
-			Ctx: ctx,
-		}.Fetch(rpc)
-		if err != nil {
-			log.Error("Failed to make request! |", "Error", err.Error())
-		}
-		return req
-	case "infura":
-		// TODO
-		return nil
-	case "alchemy":
-		// TODO
-		return nil
-	default:
-		log.Error("Provider not supported!", "Provider", p)
-		return nil
-	}
 }
 
 func (j Job) Insert(db *pg.DB, data UntypedJson) {
@@ -160,13 +125,39 @@ func (j Job) ParseExpirationDate() (*time.Time, error) {
 	return &parsedDate, nil
 }
 
-func (j Job) Fetch() UntypedJson {
-	res := j.Provider.Fetch(j.Rpc, context.Background())
-	if res == nil {
-		return nil
+func (j Job) MakeEndpoint() string {
+	n := strings.ToUpper(fmt.Sprintf("%s_%d", j.Provider, j.ChainId))
+	log.Debug("Created key from env? |", "Key", n)
+	return os.Getenv(n)
+}
+
+type NoEndpointFromEnv struct {
+	Provider Provider
+	ChainId  uint
+}
+
+func (e *NoEndpointFromEnv) Error() string {
+	return fmt.Sprintf("can't find env variable for %s_%d", e.Provider, e.ChainId)
+}
+
+func (j Job) Fetch(ctx context.Context) (*UntypedJson, error) {
+	k := j.MakeEndpoint()
+	if len(k) == 0 {
+		return nil, &NoEndpointFromEnv{
+			Provider: j.Provider,
+			ChainId:  j.ChainId,
+		}
 	}
 
-	return *res
+	var res UntypedJson
+	err := requests.
+		URL(k).
+		Accept("application/json").
+		BodyJSON(j.Rpc).
+		ToJSON(&res).
+		Fetch(ctx)
+
+	return &res, err
 }
 
 func (jh *JobHandler) PopulateJobList() error {
@@ -263,11 +254,13 @@ func (jh *JobHandler) ExecuteAll() {
 			defer ticker.Stop()
 
 			// Initial fetch and insert
-			res := job.Fetch()
-			if res == nil {
-				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+			// I don't return in case of error because the issue could just be mundane and simple to fix.
+			// No need to kill a job for that...
+			res, err := job.Fetch(jh.Ctx)
+			if err != nil {
+				log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider, "Error", err.Error())
 			} else {
-				job.Insert(jh.Db, res)
+				job.Insert(jh.Db, *res)
 			}
 
 			for {
@@ -276,11 +269,11 @@ func (jh *JobHandler) ExecuteAll() {
 					log.Debug("Job expired during execution! |", "Id", job.Id)
 					return
 				case <-ticker.C:
-					res := job.Fetch()
-					if res == nil {
-						log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider)
+					res, err := job.Fetch(jh.Ctx)
+					if err != nil {
+						log.Error("Failed to get response from server!", "Id", job.Id, "Provider", job.Provider, "Error", err.Error())
 					} else {
-						job.Insert(jh.Db, res)
+						job.Insert(jh.Db, *res)
 					}
 				}
 			}
