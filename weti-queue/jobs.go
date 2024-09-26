@@ -112,7 +112,7 @@ func insertResponse(tx *pg.Tx, id int, data UntypedJson) error {
 }
 
 func updateResponse(tx *pg.Tx, id int, data UntypedJson) error {
-	_, err := tx.Exec("UPDATE rpc_data SET data = ? WHERE id = ?", data, id)
+	_, err := tx.Exec("UPDATE rpc_data SET result = ? WHERE id = ?", data, id)
 	return err
 }
 
