@@ -34,7 +34,9 @@ app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
     const body = (await c.req.json()) as z.infer<typeof watchRequestSchema>;
 
     // @ts-ignore : the complexity of the type makes it hard for the warning to be helpful lol. 
-    // TODO: It works for now, might investigate later
+    // TODO: It works for now, might investigate later => 
+    // ? update 25/09/24 or 09/25/24 (if you're american): I still don't know why this creates an error.
+    // ? this literally works flawlessly, like a charm... <3
     const result = await db.insert(watchRequest).values(body).returning().execute();
 
     return c.json({
