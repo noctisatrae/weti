@@ -75,7 +75,7 @@ app.post('/result', zValidator("json", rpcDataSchema), async(c) => {
       .from(rpcData)
       .where(eq(rpcData.id, body.id))
 
-    return c.json(rpcResult)
+    return c.json(rpcResult[0])
   } catch (error) {
     console.error("Error getting jobs from DB:", error)
     return c.json({ error: 'An error occured' }, { status: 500 });
