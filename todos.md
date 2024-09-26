@@ -12,7 +12,9 @@
 - [x] prefix env variables so you don't pollute the environement with userspace crap
 - [x] add a row to the job SQL relation to know which chainId to make the request on! (**choose provider endpoint from .env**)
 - [x] better way to get providers => solve .env/config.toml (solve above first)
-- [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
 - [x] read through the codebase to see what's to be re-organized! (**separation of types and implementations - worth it?**)
+- [x] containerizatin of weti-queue!
 - [ ] solve todo jobs.go#l.111 (pretty important => equality of untyped structures **ASK FOR HELP ONLINE**)
-- [ ] containerizatin of weti-queue!
+- [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
+- - -
+- [ ] re-read doc + design UX to know which feature to build (get an idea at least)
