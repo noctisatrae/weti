@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,10 +19,10 @@ import (
 func main() {
 	log.Info("Current UTC time! |", "Time", time.Now().UTC())
 
-  err := godotenv.Load()
-  if err != nil {
-    log.Warn("Error loading .env file! Are you passing them through command-line? |", "Error", err.Error())
-  }
+	err := godotenv.Load()
+	if err != nil {
+		log.Warn("Error loading .env file! Are you passing them through command-line? |", "Error", err.Error())
+	}
 
 	purl := os.Getenv("WETI_DB_URL")
 	if len(purl) == 0 {
@@ -59,7 +59,7 @@ func main() {
 		Db:           db,
 		Wg:           &wg,
 		ExecutedJobs: &sync.Map{},
-		JobProvider: config.JobHandler.JobProvider,
+		JobProvider:  config.JobHandler.JobProvider,
 	}
 
 	err = j.CreateWorkerPool()
