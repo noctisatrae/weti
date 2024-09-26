@@ -1,0 +1,7 @@
+[job_handler]
+limit = 50
+rtime = 1000
+
+[logger]
+# production :)
+debug = false
