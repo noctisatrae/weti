@@ -9,8 +9,8 @@ import (
 
 type JobHandler struct {
 	JobProvider string `toml:"job_provider"`
-	Limit int `toml:"limit"`
-	Rtime int `toml:"rtime"`
+	Limit       int    `toml:"limit"`
+	Rtime       int    `toml:"rtime"`
 }
 
 type Logger struct {
@@ -25,8 +25,8 @@ type Config struct {
 var DEFAULT_CONFIG Config = Config{
 	JobHandler: JobHandler{
 		JobProvider: "http://localhost:8000/jobs",
-		Limit: 50,
-		Rtime: 1000,
+		Limit:       50,
+		Rtime:       1000,
 	},
 	Logger: Logger{
 		Debug: true,
