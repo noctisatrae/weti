@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres'
 
-import { watchRequest } from './schema';
+import { rpcData, watchRequest } from './schema';
 
 const DB_URL: string = process.env.WETI_DB_URL!;
 
@@ -15,7 +15,8 @@ const sqlMigration = postgres(DB_URL, { max: 1 })
 
 const db = drizzle(sql, {
   schema: {
-    watchRequest
+    watchRequest,
+    rpcData
   }
 });
 

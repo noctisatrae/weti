@@ -21,10 +21,22 @@ const watchRequest = pgTable('jobs', {
   rpc: jsonb('rpc').$type<RPC>()
 });
 
+// type RpcResponse struct {
+// 	Id   int
+// 	Data UntypedJson
+// }
+const rpcData = pgTable('rpc_data', {
+  id: bigserial("id", { mode: "number" }),
+  result: jsonb("result")
+});
+
 const watchRequestSchema = createSelectSchema(watchRequest).omit({ id: true });
+const rpcDataSchema = createSelectSchema(rpcData).omit({ result: true });
 
 export {
   ethereumRPCSchema,
   watchRequest,
-  watchRequestSchema
+  watchRequestSchema,
+  rpcData,
+  rpcDataSchema
 }

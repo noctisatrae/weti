@@ -3,11 +3,11 @@ import { logger } from 'hono/logger'
 import { bearerAuth } from 'hono/bearer-auth'
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator'
-import { asc, gt } from 'drizzle-orm';
+import { asc, eq, gt } from 'drizzle-orm';
 
 import db from "../db";
 import startMigration from '../db/migrate';
-import { watchRequest, watchRequestSchema } from "../db/schema"
+import { rpcData, rpcDataSchema, watchRequest, watchRequestSchema } from "../db/schema"
 
 const TOKEN: string = process.env.WETI_API_TOKEN!;
 const PORT: number = (process.env.WETI_API_PORT === undefined ? 3000 : +process.env.WETI_API_PORT);
@@ -61,6 +61,21 @@ app.post('/jobs', zValidator("json", getJobsSchema), async (c) => {
       .limit(body.limit);
 
     return c.json(validJobs);
+  } catch (error) {
+    console.error("Error getting jobs from DB:", error)
+    return c.json({ error: 'An error occured' }, { status: 500 });
+  }
+})
+
+app.post('/result', zValidator("json", rpcDataSchema), async(c) => {
+  try {
+    const body = (await c.req.json()) as z.infer<typeof rpcDataSchema>
+    const rpcResult = await db
+      .select()
+      .from(rpcData)
+      .where(eq(rpcData.id, body.id))
+
+    return c.json(rpcResult)
   } catch (error) {
     console.error("Error getting jobs from DB:", error)
     return c.json({ error: 'An error occured' }, { status: 500 });
