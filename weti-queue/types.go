@@ -18,7 +18,7 @@ type GetJobRequest struct {
 
 type Rpc interface{}
 
-type RpcResponse struct {
-	Id   int
-	Data UntypedJson
+type RpcData struct {
+	Id     int
+	Result UntypedJson
 }

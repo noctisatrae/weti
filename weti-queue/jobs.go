@@ -65,7 +65,7 @@ func (j Job) Insert(db *pg.DB, data UntypedJson) {
 
 	var rawData map[string]interface{}
 	// Query for existing data
-	_, err = tx.Query(&rawData, "SELECT data FROM rpc_responses WHERE id = ?", j.Id)
+	_, err = tx.Query(&rawData, "SELECT result FROM rpc_data WHERE id = ?", j.Id)
 	if err != nil {
 		log.Error("Failed to query existing data |", "Reason", err.Error())
 		return
@@ -104,15 +104,15 @@ func (j Job) Insert(db *pg.DB, data UntypedJson) {
 }
 
 func insertResponse(tx *pg.Tx, id int, data UntypedJson) error {
-	_, err := tx.Model(&RpcResponse{
-		Id:   id,
-		Data: data,
+	_, err := tx.Model(&RpcData{
+		Id:     id,
+		Result: data,
 	}).Insert()
 	return err
 }
 
 func updateResponse(tx *pg.Tx, id int, data UntypedJson) error {
-	_, err := tx.Exec("UPDATE rpc_responses SET data = ? WHERE id = ?", data, id)
+	_, err := tx.Exec("UPDATE rpc_data SET data = ? WHERE id = ?", data, id)
 	return err
 }
 

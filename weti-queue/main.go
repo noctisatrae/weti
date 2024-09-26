@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 	"os"
-	"strings"
+	// "strings"
 	"sync"
 	"time"
 
@@ -12,7 +12,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
+	// "github.com/go-pg/pg/v10/orm"
 	"github.com/joho/godotenv"
 )
 
@@ -44,10 +44,10 @@ func main() {
 	db := pg.Connect(&dopt)
 	defer db.Close()
 
-	err = createSchema(db)
-	if err != nil {
-		log.Fatal("Failed to create schema! |", "Error", err.Error())
-	}
+	// err = createSchema(db)
+	// if err != nil {
+	// 	log.Fatal("Failed to create schema! |", "Error", err.Error())
+	// }
 
 	var wg sync.WaitGroup
 
@@ -107,23 +107,23 @@ func main() {
 	wg.Wait()
 }
 
-func createSchema(db *pg.DB) error {
-	models := []interface{}{
-		(*RpcResponse)(nil),
-	}
+// func createSchema(db *pg.DB) error {
+// 	models := []interface{}{
+// 		(*RpcResponse)(nil),
+// 	}
 
-	for _, model := range models {
-		err := db.Model(model).CreateTable(&orm.CreateTableOptions{
-			Temp: false,
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), "42P07") || strings.Contains(err.Error(), "already exists") {
-				log.Warn("Relation already exist! Skipping... |", "Relation", fmt.Sprintf("%T", model))
-				continue
-			} else {
-				return err
-			}
-		}
-	}
-	return nil
-}
+// 	for _, model := range models {
+// 		err := db.Model(model).CreateTable(&orm.CreateTableOptions{
+// 			Temp: false,
+// 		})
+// 		if err != nil {
+// 			if strings.Contains(err.Error(), "42P07") || strings.Contains(err.Error(), "already exists") {
+// 				log.Warn("Relation already exist! Skipping... |", "Relation", fmt.Sprintf("%T", model))
+// 				continue
+// 			} else {
+// 				return err
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
