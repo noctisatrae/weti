@@ -1,9 +1,27 @@
 services:
+  queue:
+    build:
+      context: weti-queue
+      dockerfile: Dockerfile
+    container_name: weti-queue
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    env_file:
+      - .env
+    depends_on:
+      - api
+    volumes:
+      - ./config.toml:/usr/src/app/config.toml   
+    environment:
+      WETI_DB_URL: postgres://postgres:${WETI_DB_PASSWORD}@db:5432/postgres
+
   api:
     build:
-      context: weti-api
-      dockerfile: Dockerfile  # Path to the Dockerfile
-    container_name: weti_api  # Optional: Name the container for easier management
+      context: weti_api
+      dockerfile: Dockerfile  
+    container_name: weti_api 
     ports:
       - "${WETI_API_PORT:-3000}:${WETI_API_PORT:-3000}"
     restart: unless-stopped  # Restart policy for the container
@@ -11,6 +29,9 @@ services:
       - db
     env_file:
       - .env
+    environment:
+      WETI_DB_URL: postgres://postgres:${WETI_DB_PASSWORD}@db:5432/postgres
+
   db:
     image: postgres
     restart: always
