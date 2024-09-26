@@ -41,7 +41,7 @@ func Parse(path string) Config {
 	}
 
 	var config Config
-	err = toml.Unmarshal(fileByte, config)
+	err = toml.Unmarshal(fileByte, &config)
 	if err != nil {
 		log.Warn("Failed to parse config! Using defaults! |", "Error", err.Error())
 		return DEFAULT_CONFIG
