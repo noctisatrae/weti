@@ -1,7 +1,7 @@
 [job_handler]
+job_provider = "http://api:8000/jobs"
 limit = 50
 rtime = 1000
 
 [logger]
-# production :)
 debug = false
