@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
+import { cors } from 'hono/cors'
 import { bearerAuth } from 'hono/bearer-auth'
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator'
@@ -27,7 +28,7 @@ await startMigration;
 const app = new Hono()
 app.use(logger())
 
-app.use('/*', bearerAuth({ token: TOKEN }))
+app.use('/*', bearerAuth({ token: TOKEN }), cors())
 
 app.post('/watch', zValidator("json", watchRequestSchema), async (c) => {
   try {
