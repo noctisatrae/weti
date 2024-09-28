@@ -1,7 +1,24 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useFetcher } from "@remix-run/react";
+import { useEffect } from "react";
+import { loader } from "./jobs";
 
-export default function Index() {
-  return <>
-    <ConnectButton></ConnectButton>
-  </>;
+import { useIsConnected } from "~/hooks/useIsConnected";
+
+const Index = () => {
+  const isConnected = useIsConnected()
+  const fetcher = useFetcher<typeof loader>()
+
+  useEffect(() => {
+    if (isConnected == true) {
+      fetcher.load("/jobs?connected=true")
+    }
+  }, [isConnected])
+
+  return (
+    <>
+      {fetcher.data == null && isConnected ? (<p>Loading...</p>) : (<p>{JSON.stringify(fetcher.data)}</p>)}
+    </>
+  );
 }
+
+export default Index;
