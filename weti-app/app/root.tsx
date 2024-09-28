@@ -18,6 +18,8 @@ import '@rainbow-me/rainbowkit/styles.css';
 import "./tailwind.css";
 import config from "./wagmi.config";
 
+import Navbar from "./components/Navbar";
+
 const queryClient = new QueryClient();
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -30,7 +32,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider>
+              <Navbar />
+              {children}
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -39,12 +48,5 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-
-  return <WagmiProvider config={config}>
-    <QueryClientProvider client={queryClient}>
-      <RainbowKitProvider>
-        <Outlet />
-      </RainbowKitProvider>
-    </QueryClientProvider>
-  </WagmiProvider>
+  return <Outlet />
 }
