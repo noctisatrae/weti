@@ -1,42 +1,17 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node"
 import { base, mainnet } from "viem/chains";
 
-type Rpc = {
-  jsonrpc: string,
-  method: string,
-  params: string[],
-  id: number
-}
-
-type RpcResponse = {
-  id: number;
-  result: unknown;
-}
-
-enum Provider {
-  Alchmey = "alchemy",
-  Moralis = "moralis"
-}
-
-type WatchRequest = {
-  chainId: number,
-  frequency: number,
-  expiration: string,
-  provider: Provider,
-  rpc: Rpc
-}
-
-type WatchRequestResponse = {
-  id: number
-}
-
-type WatchRequestResponseError = {
-  error: string
-}
+import { Provider, WatchRequest, WatchRequestResponse, WatchRequestResponseError, RpcResponse } from "~/types/";
+import { GetBalances } from "~/types/alchemy";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
+  const chain = url.searchParams.get('chain');
   const isConnected = url.searchParams.get('connected') === 'true';
+
+  if (chain === null) {
+    return json({ error: 'Chain id not provided' }, { status: 400 })
+  }
 
   if (!isConnected) {
     return json({ error: 'User not connected' }, { status: 401 });
@@ -47,17 +22,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     let watchResponse = await fetch("http://localhost:8000/watch", {
       method: "POST",
       body: JSON.stringify({
-        chainId: mainnet.id,
+        // string conversion
+        chainId: +chain,
         frequency: 10,
-        expiration: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        provider: Provider.Alchmey,
+        // 2 minutes from now
+        expiration: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+        provider: Provider.Alchemy,
         rpc: {
           jsonrpc: "2.0",
           method: "alchemy_getTokenBalances",
           params: [
-            "0x84673f99d9807780ce5Db4c3A980d708535d9604", ["0x3abF2A4f8452cCC2CF7b4C1e4663147600646f66"]
+            "0x84673f99d9807780ce5Db4c3A980d708535d9604",
           ],
-          id: 1
+          id: 42
         }
       } as WatchRequest),
       headers: {
@@ -71,40 +48,40 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       throw new Error("Failed to create job");
     }
 
-    const watchData = await watchResponse.json() as WatchRequestResponse;
+    const {id} = await watchResponse.json() as WatchRequestResponse;
 
     // 2. Poll the /result endpoint until the job is completed
-    let result: RpcResponse | null = null;
+    let jobResult: RpcResponse<GetBalances> | null = null;
     const pollInterval = 2000; // 2 seconds polling interval
-    const maxRetries = 25; // Retry 10 times before giving up
+    const maxRetries = 25; // Retry 25 times before giving up
     let retries = 0;
 
-    while (result == null && retries < maxRetries) {
+    while (jobResult == null && retries < maxRetries) {
       await new Promise(res => setTimeout(res, pollInterval)); // Wait for 2 seconds before retrying
 
-      const resultResponse = await fetch(`http://localhost:8000/result`, {
+      const resultResponse = await (await fetch(`http://localhost:8000/result`, {
         method: "POST",
         headers: {
           "Authorization": "Bearer helloworld",
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-           id: watchData.id
-        } as WatchRequestResponse)
-      });
+          id: id
+        })
+      })).text();
 
-      if (resultResponse.ok) {
-        result = await resultResponse.json() as RpcResponse;
+      if (resultResponse != "") {
+        jobResult = JSON.parse(resultResponse)
       }
 
       retries++;
     }
 
-    if (!result) {
+    if (jobResult == null) {
       throw new Error("Failed to retrieve result after multiple attempts");
     }
 
-    return json(result);
+    return json(jobResult.result);
 
   } catch (e) {
     console.error(e);
