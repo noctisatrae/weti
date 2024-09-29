@@ -17,4 +17,8 @@
 - [ ] solve todo jobs.go#l.111 (pretty important => equality of untyped structures **ASK FOR HELP ONLINE**)
 - [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
 - - -
-- [ ] re-read doc + design UX to know which feature to build (get an idea at least)
+- [x] re-read doc + design UX to know which feature to build (get an idea at least)
+- [ ] fetch token (historic) price to make a graph !
+- [ ] clean error handling (too optimistic right now ahaha)
+- [ ] fetch token images!
+- [ ] good css to make it beautiful (shacdn/ui + v0)
