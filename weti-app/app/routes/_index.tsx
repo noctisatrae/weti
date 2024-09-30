@@ -1,12 +1,11 @@
 import { useFetcher } from "@remix-run/react";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { loader } from "./balance";
 
 import { useIsConnected } from "~/hooks/useIsConnected";
 import { GetBalances } from "~/types/moralis";
 import { useAccount, useChainId } from "wagmi";
-
-import { parseBalance } from '~/lib/'
+import TokenBalanceTable from "~/components/TokenBalance";
 
 const Index = () => {
   const isConnected = useIsConnected()
@@ -26,9 +25,7 @@ const Index = () => {
         <p>Loading...</p>
       ) : (
         fetcher.data && (fetcher.data as GetBalances).result? (
-          (fetcher.data as GetBalances).result.map(token => (
-            <li key={token.symbol}><img src={token.logo} alt={token.symbol} />{parseBalance(token.balance, token.decimals)}</li>
-          ))
+          <TokenBalanceTable data={(fetcher.data as GetBalances).result} />
         ) : (
           <p>No balances available</p>
         )
