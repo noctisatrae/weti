@@ -1,7 +1,7 @@
 export type Rpc = {
   jsonrpc: string,
   method: string,
-  params: string[],
+  params: unknown[],
   id: number
 }
 
