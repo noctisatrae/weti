@@ -16,9 +16,15 @@
 - [x] containerizatin of weti-queue!
 - [ ] solve todo jobs.go#l.111 (pretty important => equality of untyped structures **ASK FOR HELP ONLINE**)
 - [ ] test parsing/loading/utils functions (config.Parse(), pgurl.go & **edgecases??**)
+- [ ] explore the possibility to add webhooks?
 - - -
 - [x] re-read doc + design UX to know which feature to build (get an idea at least)
-- [ ] fetch token (historic) price to make a graph !
-- [ ] clean error handling (too optimistic right now ahaha)
-- [ ] fetch token images!
-- [ ] good css to make it beautiful (shacdn/ui + v0)
+- [x] fetch token images!
+- [x] good css to make it beautiful (shacdn/ui + v0)
+- [ ] swap interface for tokens (new front-end => dynamic `/swap/{contractAddress}` + backend route `/tokenInfo/{}`)
+- [ ] watch jobs for the user (`/watch/{token}`)
+- [ ] add a loading animation when switching chains/user (user feedback is important - the page looks dead lol)
+- [ ] fix filter function
+- [ ] fix dark mode not working (check prefers-color-scheme)
+- [ ] clean error handling (too optimistic right now ahaha => it always work so is it important heeheh ;))
+- [ ] fetch token (historic) price to make a graph ! (sidequest if possible)
