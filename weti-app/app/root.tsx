@@ -6,6 +6,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import {
+  darkTheme,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
@@ -31,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="dark">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -43,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return <WagmiProvider config={config}>
     <QueryClientProvider client={queryClient}>
-      <RainbowKitProvider>
+      <RainbowKitProvider theme={darkTheme()}>
         <Navbar />
         <Outlet />
       </RainbowKitProvider>
