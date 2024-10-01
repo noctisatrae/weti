@@ -75,7 +75,7 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
   });
 
   return (
-    <div className="w-full">
+    <div className="p-6">
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter tokens..."
