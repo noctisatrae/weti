@@ -15,8 +15,8 @@ import {
   getPaginationRowModel,
   SortingState,
   getSortedRowModel,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Result } from '~/types/moralis';
@@ -38,6 +38,7 @@ const columns: ColumnDef<Result>[] = [
         </div>
       );
     },
+    filterFn: "includesString"
   },
   {
     accessorKey: "balance",
@@ -45,7 +46,7 @@ const columns: ColumnDef<Result>[] = [
     cell: ({ row }) => {
       const result = row.original;
       const parsedBalance = parseBalance(result.balance, result.decimals);
-      return <span>{parsedBalance}</span>; // Display parsed balance
+      return <span>{parsedBalance}</span>;
     },
   },
   {
@@ -56,6 +57,7 @@ const columns: ColumnDef<Result>[] = [
 
 const TokenBalanceTable = ({ data }: { data: Result[] }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const table = useReactTable({
     data,
@@ -64,8 +66,11 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
+      globalFilter,
     },
   });
 
@@ -74,10 +79,8 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter tokens..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -119,24 +122,6 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
             )}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
       </div>
     </div>
   );
