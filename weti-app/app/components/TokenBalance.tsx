@@ -21,6 +21,8 @@ import { Input } from "./ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Result } from '~/types/moralis';
 import { parseBalance } from '~/lib';
+import { useNavigate } from '@remix-run/react';
+import { useChainId } from 'wagmi';
 
 const columns: ColumnDef<Result>[] = [
   {
@@ -34,7 +36,6 @@ const columns: ColumnDef<Result>[] = [
             <AvatarImage src={result.logo} alt={result.name} />
             <AvatarFallback>{result.symbol}</AvatarFallback>
           </Avatar>
-          <span>{result.name}</span>
         </div>
       );
     },
@@ -56,6 +57,8 @@ const columns: ColumnDef<Result>[] = [
 ];
 
 const TokenBalanceTable = ({ data }: { data: Result[] }) => {
+  const navigate = useNavigate();
+  const chain = useChainId();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -105,7 +108,7 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow key={row.id} onClick={() => navigate(`/token/${chain}/${data[row.index].token_address}`)} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
