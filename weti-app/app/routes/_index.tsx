@@ -25,7 +25,9 @@ const Index = () => {
         <p>Loading...</p>
       ) : (
         fetcher.data && (fetcher.data as GetBalances).result? (
-          <TokenBalanceTable data={(fetcher.data as GetBalances).result} />
+          <>
+            <TokenBalanceTable data={(fetcher.data as GetBalances).result} /> 
+          </>
         ) : (
           <p>No balances available</p>
         )
