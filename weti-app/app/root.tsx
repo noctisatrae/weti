@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return <WagmiProvider config={config}>
     <QueryClientProvider client={queryClient}>
-      <RainbowKitProvider initialChain={8453} coolMode theme={darkTheme()}>
+      <RainbowKitProvider initialChain={8453} theme={darkTheme()}>
         <Navbar />
         <Outlet />
       </RainbowKitProvider>
