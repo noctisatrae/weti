@@ -14,10 +14,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 const Index = () => {
   const data = useLoaderData<typeof loader>()
 
-  console.debug(data)
-
   return (
-    <Tabs className="p-10 m-10" defaultValue="metrics">
+    <Tabs className="p-1 lg:p-10 lg:m-10" defaultValue="metrics">
       <script src="https://widgets.coingecko.com/gecko-coin-price-chart-widget.js"></script>
       <TabsList>
         <TabsTrigger value="metrics">Key Metrics</TabsTrigger>
