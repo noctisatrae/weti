@@ -21,12 +21,19 @@ import { cn } from "~/lib/utils"
 import { format } from "date-fns/format"
 import { useForm } from "react-hook-form"
 
-function CalendarForm() {
+
+type CalendarFormProps = {
+  utcDate: string,
+  setUTCDate: React.Dispatch<string>,
+  name: string
+}
+
+function CalendarForm(props: CalendarFormProps) {
   const form = useForm()
 
   return (
     <Form {...form}>
-      <form className="space-y-8">
+      <form method="post" className="space-y-8">
         <FormField
           name="dob"
           render={({ field }) => (
@@ -55,7 +62,10 @@ function CalendarForm() {
                   <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={field.onChange}
+                    onSelect={(val) => {
+                      props.setUTCDate(val!.toISOString())
+                      field.onChange(val)
+                    }}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
