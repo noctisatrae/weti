@@ -22,9 +22,10 @@
 - [x] fetch token images!
 - [x] good css to make it beautiful (shacdn/ui + v0)
 - [ ] swap interface for tokens (new front-end => dynamic `/swap/{contractAddress}` + backend route `/tokenInfo/{}`)
-- [ ] watch jobs for the user (`/watch/{token}`)
+- [x] watch jobs for the user (`/watch/{token}`) => Implemented UI
+- [ ] implement wallet watching using Moralis extended RPC (cf. doc) (`/job`)
 - [ ] add a loading animation when switching chains/user (user feedback is important - the page looks dead lol)
-- [ ] fix filter function
-- [ ] fix dark mode not working (check prefers-color-scheme)
+- [x] fix filter function
+- [x] fix dark mode not working (check prefers-color-scheme)
 - [ ] clean error handling (too optimistic right now ahaha => it always work so is it important heeheh ;))
-- [ ] fetch token (historic) price to make a graph ! (sidequest if possible)
+- [x] fetch token (historic) price to make a graph ! (sidequest if possible)
