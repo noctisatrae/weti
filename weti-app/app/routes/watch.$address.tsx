@@ -47,7 +47,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   console.debug({address, utcDate, frequency})
 
-  fetch("http://localhost:8000/watch", { method: "POST" })
+  fetch("http://localhost:8000/watch", { method: "POST", body: "" })
 
   return redirect("/job/3")
 }
