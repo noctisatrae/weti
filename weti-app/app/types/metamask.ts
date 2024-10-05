@@ -1,5 +1,5 @@
 export interface PriceAPI {
-  [key: string]: unknown;
+  [key: string]: any;
   id:                       string;
   symbol:                   string;
   name:                     string;
