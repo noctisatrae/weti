@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
   SortingState,
   getSortedRowModel,
   getFilteredRowModel,
@@ -36,6 +35,7 @@ const columns: ColumnDef<Result>[] = [
             <AvatarImage src={result.logo} alt={result.name} />
             <AvatarFallback>{result.symbol}</AvatarFallback>
           </Avatar>
+          <span>{result.name}</span>
         </div>
       );
     },
@@ -49,6 +49,11 @@ const columns: ColumnDef<Result>[] = [
       const parsedBalance = parseBalance(result.balance, result.decimals);
       return <span>{parsedBalance}</span>;
     },
+    sortingFn: (a, b) => {
+      const balanceA = parseFloat(`${parseBalance(a.original.balance, a.original.decimals)}`);
+      const balanceB = parseFloat(`${parseBalance(b.original.balance, b.original.decimals)}`);
+      return balanceB - balanceA;
+    },
   },
   {
     accessorKey: "symbol",
@@ -59,14 +64,23 @@ const columns: ColumnDef<Result>[] = [
 const TokenBalanceTable = ({ data }: { data: Result[] }) => {
   const navigate = useNavigate();
   const chain = useChainId();
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'balance', desc: true }
+  ]);
   const [globalFilter, setGlobalFilter] = useState('');
 
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      const balanceA = parseFloat(`${parseBalance(a.balance, a.decimals)}`);
+      const balanceB = parseFloat(`${parseBalance(b.balance, b.decimals)}`);
+      return balanceB - balanceA;
+    });
+  }, [data]);
+
   const table = useReactTable({
-    data,
+    data: sortedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -94,12 +108,23 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
+                    {header.isPlaceholder ? null : (
+                      <div
+                        {...{
+                          className: header.column.getCanSort() ? 'cursor-pointer select-none' : '',
+                          onClick: header.column.getToggleSortingHandler(),
+                        }}
+                      >
+                        {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
+                        {{
+                          asc: ' 🔼',
+                          desc: ' 🔽',
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </div>
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -108,7 +133,11 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} onClick={() => navigate(`/token/${chain}/${data[row.index].token_address}`)} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  onClick={() => navigate(`/token/${chain}/${row.original.token_address}`)}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
