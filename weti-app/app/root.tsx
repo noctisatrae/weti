@@ -36,6 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        <script src="https://widgets.coingecko.com/gecko-coin-price-chart-widget.js"></script>
       </body>
     </html>
   );
