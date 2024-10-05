@@ -15,7 +15,7 @@ const Index = () => {
   const data = useLoaderData<typeof loader>()
 
   return (
-    <Tabs className="p-1 lg:p-10 lg:m-10" defaultValue="metrics">
+    <Tabs className="p-1 lg:p-5 lg:m-5" defaultValue="metrics">
       <script src="https://widgets.coingecko.com/gecko-coin-price-chart-widget.js"></script>
       <TabsList>
         <TabsTrigger value="metrics">Key Metrics</TabsTrigger>
