@@ -23,7 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   try {
     // 1. Make the /watch request only once (e.g., to start a job)
-    let watchResponse = await fetch("http://localhost:8000/watch", {
+    const watchResponse = await fetch("http://localhost:8000/watch", {
       method: "POST",
       body: JSON.stringify({
         // string conversion
