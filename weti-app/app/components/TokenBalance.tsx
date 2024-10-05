@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -20,7 +20,7 @@ import { Input } from "./ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Result } from '~/types/moralis';
 import { parseBalance } from '~/lib';
-import { useNavigate } from '@remix-run/react';
+import { Link, useNavigate } from '@remix-run/react';
 import { useChainId } from 'wagmi';
 
 const columns: ColumnDef<Result>[] = [
@@ -135,12 +135,16 @@ const TokenBalanceTable = ({ data }: { data: Result[] }) => {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  onClick={() => navigate(`/token/${chain}/${row.original.token_address}`)}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      <Link
+                        to={`/token/${chain}/${row.original.token_address}`}
+                        prefetch="intent"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </Link>
                     </TableCell>
                   ))}
                 </TableRow>
