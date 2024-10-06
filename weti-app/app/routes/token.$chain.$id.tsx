@@ -2,7 +2,10 @@ import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import KeyMetrics from "~/components/KeyMetrics";
 import PriceChart from "~/components/PriceChart";
+import {Trade} from "~/components/Trade";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+
+import PriceAction from "~/routes/price"
 
 import { PriceAPI } from "~/types/metamask";
 
@@ -15,6 +18,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     return json({ error: e  })
   }  
 }
+
+export const action = PriceAction;
 
 const Index = () => {
   const data = useLoaderData<typeof loader>()
@@ -35,7 +40,8 @@ const Index = () => {
         {data != null ? <PriceChart id={data.id} /> : <p>Loading chart...</p>}
       </TabsContent>
       <TabsContent value="trade">
-        <p>hello world!</p>
+        { /* @ts-ignore */ }
+        {data.symbol != null ? <Trade /> : <p>Trade not available</p> }
       </TabsContent>
     </Tabs>
   );
