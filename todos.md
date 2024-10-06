@@ -21,9 +21,11 @@
 - [x] re-read doc + design UX to know which feature to build (get an idea at least)
 - [x] fetch token images!
 - [x] good css to make it beautiful (shacdn/ui + v0)
-- [ ] swap interface for tokens (new front-end => dynamic `/swap/{contractAddress}` + backend route `/tokenInfo/{}`)
+- [x] swap interface for tokens (new front-end => dynamic `/swap/{contractAddress}` + backend route `/tokenInfo/{}`)
+- [x] error handling on routes/tokens.tsx
+- [ ] make transaction
 - [x] watch jobs for the user (`/watch/{token}`) => Implemented UI
-- [ ] implement wallet watching using Moralis extended RPC (cf. doc) (`/job`)
+- [x] implement wallet watching using Moralis extended RPC (cf. doc) (`/job`)
 - [ ] add a loading animation when switching chains/user (user feedback is important - the page looks dead lol)
 - [x] fix filter function
 - [x] fix dark mode not working (check prefers-color-scheme)
