@@ -23,6 +23,23 @@ export type WatchRequest = {
   rpc: Rpc
 }
 
+export type TokenList = {
+  name: string,
+  symbol: string,
+  decimals: number,
+  address: string,
+  iconUrl: string,
+  occurences: number,
+  source: string[],
+  chainId: number,
+  coingeckoId: string
+}
+
+export type TokenSelectResult = {
+  symbol: string,
+  address: string
+}
+
 export type WatchRequestResponse = {
   id: number
 }
