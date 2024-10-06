@@ -44,12 +44,7 @@ const Navbar = () => {
             </ListItem>
           </Link>
         </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Wallet</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ConnectButton />
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        <ConnectButton accountStatus={'avatar'} showBalance={false} chainStatus={'icon'} />
       </NavigationMenuList>
     </NavigationMenu>
   );
