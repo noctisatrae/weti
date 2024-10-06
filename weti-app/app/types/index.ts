@@ -37,7 +37,8 @@ export type TokenList = {
 
 export type TokenSelectResult = {
   symbol: string,
-  address: string
+  address: string,
+  iconUrl: string
 }
 
 export type WatchRequestResponse = {
